@@ -64,45 +64,31 @@
             position: fixed;
             top: 0;
             width: 100%;
-            padding: 20px 5%;
+            padding: 15px 5%;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background-color: rgba(10, 10, 10, 0.9);
+            background-color: rgba(10, 10, 10, 0.95);
             z-index: 1000;
             border-bottom: 1px solid var(--blood-red);
             backdrop-filter: blur(10px);
         }
 
-        .logo {
-            font-size: 28px;
-            font-weight: 800;
-            color: var(--text-primary);
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            position: relative;
+        .logo-container {
+            height: 50px;
+            display: flex;
+            align-items: center;
         }
 
-        .logo::after {
-            content: '';
-            position: absolute;
-            bottom: -5px;
-            left: 0;
-            width: 100%;
-            height: 2px;
-            background: var(--blood-red);
-            transform: scaleX(0);
-            transform-origin: right;
-            transition: transform 0.5s ease;
+        .logo-img {
+            height: 100%;
+            width: auto;
+            filter: drop-shadow(0 0 5px rgba(139, 0, 0, 0.5));
+            transition: transform 0.3s ease;
         }
 
-        .logo:hover::after {
-            transform: scaleX(1);
-            transform-origin: left;
-        }
-
-        .logo span {
-            color: var(--blood-red);
+        .logo-img:hover {
+            transform: scale(1.05);
         }
 
         nav ul {
@@ -149,7 +135,7 @@
             cursor: pointer;
         }
 
-        /* Hero Section */
+        /* Hero Section with background image */
         .hero {
             height: 100vh;
             display: flex;
@@ -159,6 +145,30 @@
             padding: 0 5%;
             position: relative;
             overflow: hidden;
+        }
+
+        .hero-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background-image: url('bg.png');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            opacity: 0.15;
+        }
+
+        .hero-bg-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to bottom, rgba(10, 10, 10, 0.9) 0%, rgba(10, 10, 10, 0.7) 50%, rgba(10, 10, 10, 0.9) 100%);
+            z-index: -1;
         }
 
         .hero-content {
@@ -424,16 +434,16 @@
             border-top: 1px solid rgba(139, 0, 0, 0.3);
         }
 
-        .footer-logo {
-            font-size: 2rem;
-            font-weight: 800;
+        .footer-logo-container {
+            display: flex;
+            justify-content: center;
             margin-bottom: 20px;
-            text-transform: uppercase;
-            letter-spacing: 2px;
         }
 
-        .footer-logo span {
-            color: var(--blood-red);
+        .footer-logo {
+            height: 60px;
+            width: auto;
+            filter: drop-shadow(0 0 5px rgba(139, 0, 0, 0.5));
         }
 
         .footer-disclaimer {
@@ -475,12 +485,16 @@
 
         @media (max-width: 768px) {
             header {
-                padding: 15px 5%;
+                padding: 12px 5%;
+            }
+            
+            .logo-container {
+                height: 40px;
             }
             
             nav ul {
                 position: fixed;
-                top: 70px;
+                top: 65px;
                 left: 0;
                 width: 100%;
                 background-color: var(--secondary-dark);
@@ -517,6 +531,10 @@
             .section-title {
                 font-size: 2rem;
             }
+            
+            .footer-logo {
+                height: 50px;
+            }
         }
 
         @media (max-width: 480px) {
@@ -531,6 +549,10 @@
             .section {
                 padding: 70px 5%;
             }
+            
+            .logo-container {
+                height: 35px;
+            }
         }
     </style>
 </head>
@@ -538,9 +560,11 @@
     <!-- Animated Background -->
     <div class="background-animation" id="bloodDrops"></div>
     
-    <!-- Header -->
+    <!-- Header with logo -->
     <header>
-        <div class="logo">ROAV <span>TEAM</span></div>
+        <div class="logo-container">
+            <img src="logo.png" alt="ROAV Team Logo" class="logo-img">
+        </div>
         <div class="mobile-menu" id="mobileMenu">
             <i class="fas fa-bars"></i>
         </div>
@@ -555,8 +579,10 @@
         </nav>
     </header>
 
-    <!-- Hero Section -->
+    <!-- Hero Section with background image -->
     <section class="hero" id="home">
+        <div class="hero-bg"></div>
+        <div class="hero-bg-overlay"></div>
         <div class="hero-content">
             <h1>SECURITY RESEARCH & <span>DEVELOPMENT</span></h1>
             <p>Identifying vulnerabilities, building proof-of-concept tools, and helping developers understand real-world security risks before attackers can exploit them.</p>
@@ -713,9 +739,11 @@
         </div>
     </section>
 
-    <!-- Footer -->
+    <!-- Footer with logo -->
     <footer>
-        <div class="footer-logo">ROAV <span>TEAM</span></div>
+        <div class="footer-logo-container">
+            <img src="logo.png" alt="ROAV Team Logo" class="footer-logo">
+        </div>
         <p class="footer-disclaimer">All our work is conducted strictly for educational, testing, and defensive purposes in controlled environments with proper authorization. We do not support or engage in unauthorized access, illegal exploitation, or harm to individuals or systems.</p>
         <div class="copyright">
             &copy; 2023 ROAV Team - Security Research & Development. All rights reserved.
@@ -814,6 +842,70 @@
                 el.style.transition = 'opacity 0.8s ease, transform 0.8s ease';
                 observer.observe(el);
             });
+            
+            // Handle missing images
+            const logoImages = document.querySelectorAll('img[src="logo.png"]');
+            const bgImage = document.querySelector('.hero-bg');
+            
+            // Check if logo images load successfully
+            logoImages.forEach(img => {
+                img.addEventListener('error', function() {
+                    console.log('Logo image not found, using text fallback');
+                    const parent = this.parentElement;
+                    if (parent.classList.contains('logo-container')) {
+                        parent.innerHTML = '<div class="logo-text">ROAV <span>TEAM</span></div>';
+                        parent.style.height = 'auto';
+                        
+                        // Add styles for text logo
+                        const style = document.createElement('style');
+                        style.textContent = `
+                            .logo-text {
+                                font-size: 28px;
+                                font-weight: 800;
+                                color: white;
+                                text-transform: uppercase;
+                                letter-spacing: 2px;
+                            }
+                            .logo-text span {
+                                color: var(--blood-red);
+                            }
+                            @media (max-width: 768px) {
+                                .logo-text {
+                                    font-size: 22px;
+                                }
+                            }
+                        `;
+                        document.head.appendChild(style);
+                    } else if (parent.classList.contains('footer-logo-container')) {
+                        parent.innerHTML = '<div class="footer-logo-text">ROAV <span>TEAM</span></div>';
+                        
+                        // Add styles for footer text logo
+                        const style = document.createElement('style');
+                        style.textContent = `
+                            .footer-logo-text {
+                                font-size: 2rem;
+                                font-weight: 800;
+                                text-transform: uppercase;
+                                letter-spacing: 2px;
+                                color: white;
+                            }
+                            .footer-logo-text span {
+                                color: var(--blood-red);
+                            }
+                        `;
+                        document.head.appendChild(style);
+                    }
+                });
+            });
+            
+            // Check if background image loads successfully
+            if (bgImage) {
+                bgImage.addEventListener('error', function() {
+                    console.log('Background image not found, using fallback background');
+                    this.style.backgroundImage = 'none';
+                    this.parentElement.querySelector('.hero-bg-overlay').style.background = 'linear-gradient(to bottom, rgba(10, 10, 10, 0.95) 0%, rgba(10, 10, 10, 0.8) 100%)';
+                });
+            }
         });
     </script>
 </body>
