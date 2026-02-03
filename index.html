@@ -1,0 +1,820 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ROAV Team - Security Research & Development</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        :root {
+            --primary-dark: #0a0a0a;
+            --secondary-dark: #111111;
+            --blood-red: #8B0000;
+            --blood-red-light: #b30000;
+            --blood-red-glow: rgba(139, 0, 0, 0.7);
+            --text-primary: #ffffff;
+            --text-secondary: #cccccc;
+        }
+
+        body {
+            background-color: var(--primary-dark);
+            color: var(--text-primary);
+            overflow-x: hidden;
+        }
+
+        /* Animated background */
+        .background-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -2;
+            background: radial-gradient(circle at 20% 50%, rgba(139, 0, 0, 0.1) 0%, transparent 20%), 
+                        radial-gradient(circle at 80% 20%, rgba(139, 0, 0, 0.08) 0%, transparent 20%),
+                        radial-gradient(circle at 40% 80%, rgba(139, 0, 0, 0.05) 0%, transparent 20%);
+        }
+
+        .blood-drop {
+            position: absolute;
+            background: var(--blood-red);
+            border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+            opacity: 0.1;
+            animation: float 20s infinite linear;
+        }
+
+        @keyframes float {
+            0% {
+                transform: translateY(0) rotate(0deg);
+            }
+            100% {
+                transform: translateY(-1000px) rotate(720deg);
+            }
+        }
+
+        /* Header */
+        header {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            padding: 20px 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: rgba(10, 10, 10, 0.9);
+            z-index: 1000;
+            border-bottom: 1px solid var(--blood-red);
+            backdrop-filter: blur(10px);
+        }
+
+        .logo {
+            font-size: 28px;
+            font-weight: 800;
+            color: var(--text-primary);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            position: relative;
+        }
+
+        .logo::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: var(--blood-red);
+            transform: scaleX(0);
+            transform-origin: right;
+            transition: transform 0.5s ease;
+        }
+
+        .logo:hover::after {
+            transform: scaleX(1);
+            transform-origin: left;
+        }
+
+        .logo span {
+            color: var(--blood-red);
+        }
+
+        nav ul {
+            display: flex;
+            list-style: none;
+        }
+
+        nav ul li {
+            margin-left: 30px;
+        }
+
+        nav ul li a {
+            color: var(--text-primary);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 16px;
+            position: relative;
+            padding: 5px 0;
+            transition: color 0.3s ease;
+        }
+
+        nav ul li a:hover {
+            color: var(--blood-red);
+        }
+
+        nav ul li a::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--blood-red);
+            transition: width 0.3s ease;
+        }
+
+        nav ul li a:hover::after {
+            width: 100%;
+        }
+
+        .mobile-menu {
+            display: none;
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        /* Hero Section */
+        .hero {
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 0 5%;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-content {
+            max-width: 1200px;
+            z-index: 1;
+        }
+
+        .hero h1 {
+            font-size: 4.5rem;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            line-height: 1.1;
+            opacity: 0;
+            animation: fadeInUp 1s forwards 0.5s;
+        }
+
+        .hero h1 span {
+            color: var(--blood-red);
+            text-shadow: 0 0 10px var(--blood-red-glow);
+        }
+
+        .hero p {
+            font-size: 1.5rem;
+            margin-bottom: 40px;
+            color: var(--text-secondary);
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            opacity: 0;
+            animation: fadeInUp 1s forwards 1s;
+        }
+
+        .cta-button {
+            display: inline-block;
+            padding: 15px 40px;
+            background-color: transparent;
+            color: var(--blood-red);
+            border: 2px solid var(--blood-red);
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 18px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+            opacity: 0;
+            animation: fadeInUp 1s forwards 1.5s;
+            transition: color 0.3s ease;
+        }
+
+        .cta-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: var(--blood-red);
+            transition: left 0.5s ease;
+            z-index: -1;
+        }
+
+        .cta-button:hover {
+            color: var(--primary-dark);
+        }
+
+        .cta-button:hover::before {
+            left: 0;
+        }
+
+        /* Sections */
+        .section {
+            padding: 100px 5%;
+        }
+
+        .section-title {
+            font-size: 2.5rem;
+            margin-bottom: 60px;
+            text-align: center;
+            position: relative;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 3px;
+            background: var(--blood-red);
+        }
+
+        .section-dark {
+            background-color: var(--secondary-dark);
+        }
+
+        /* About Section */
+        .about-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 60px;
+            align-items: center;
+        }
+
+        .about-text p {
+            font-size: 1.2rem;
+            line-height: 1.6;
+            margin-bottom: 30px;
+            color: var(--text-secondary);
+        }
+
+        .about-highlight {
+            color: var(--blood-red);
+            font-weight: 700;
+        }
+
+        /* Fields of work */
+        .fields-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 30px;
+            margin-top: 50px;
+        }
+
+        .field-card {
+            background-color: rgba(17, 17, 17, 0.7);
+            padding: 30px;
+            border-left: 4px solid var(--blood-red);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .field-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 10px 20px rgba(139, 0, 0, 0.2);
+        }
+
+        .field-icon {
+            font-size: 2.5rem;
+            color: var(--blood-red);
+            margin-bottom: 20px;
+        }
+
+        .field-card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+        }
+
+        .field-card p {
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        /* Team Section */
+        .team-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 40px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .team-member {
+            text-align: center;
+            padding: 30px;
+            background-color: rgba(17, 17, 17, 0.7);
+            border-radius: 5px;
+            transition: transform 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .team-member:hover {
+            transform: translateY(-10px);
+        }
+
+        .member-icon {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background-color: var(--primary-dark);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            border: 2px solid var(--blood-red);
+            font-size: 2.5rem;
+            color: var(--blood-red);
+        }
+
+        .team-member h3 {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+        }
+
+        .team-member p {
+            color: var(--blood-red-light);
+            font-weight: 600;
+        }
+
+        /* Contact Section */
+        .contact-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 60px;
+            align-items: center;
+        }
+
+        .contact-info {
+            font-size: 1.2rem;
+        }
+
+        .contact-item {
+            margin-bottom: 30px;
+            display: flex;
+            align-items: center;
+        }
+
+        .contact-icon {
+            width: 60px;
+            height: 60px;
+            background-color: rgba(139, 0, 0, 0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 20px;
+            font-size: 1.5rem;
+            color: var(--blood-red);
+        }
+
+        .contact-text h3 {
+            font-size: 1.5rem;
+            margin-bottom: 5px;
+        }
+
+        .contact-text a {
+            color: var(--blood-red);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .contact-text a:hover {
+            color: var(--blood-red-light);
+            text-decoration: underline;
+        }
+
+        /* Footer */
+        footer {
+            background-color: var(--primary-dark);
+            padding: 40px 5%;
+            text-align: center;
+            border-top: 1px solid rgba(139, 0, 0, 0.3);
+        }
+
+        .footer-logo {
+            font-size: 2rem;
+            font-weight: 800;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .footer-logo span {
+            color: var(--blood-red);
+        }
+
+        .footer-disclaimer {
+            max-width: 800px;
+            margin: 20px auto;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+
+        .copyright {
+            margin-top: 30px;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        /* Animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .hero h1 {
+                font-size: 3.5rem;
+            }
+            
+            .about-content, .contact-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            header {
+                padding: 15px 5%;
+            }
+            
+            nav ul {
+                position: fixed;
+                top: 70px;
+                left: 0;
+                width: 100%;
+                background-color: var(--secondary-dark);
+                flex-direction: column;
+                align-items: center;
+                padding: 20px 0;
+                transform: translateY(-100%);
+                opacity: 0;
+                transition: transform 0.3s ease, opacity 0.3s ease;
+                z-index: 999;
+            }
+            
+            nav ul.active {
+                transform: translateY(0);
+                opacity: 1;
+            }
+            
+            nav ul li {
+                margin: 15px 0;
+            }
+            
+            .mobile-menu {
+                display: block;
+            }
+            
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+            
+            .hero p {
+                font-size: 1.2rem;
+            }
+            
+            .section-title {
+                font-size: 2rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .hero h1 {
+                font-size: 2rem;
+            }
+            
+            .fields-container, .team-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .section {
+                padding: 70px 5%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Animated Background -->
+    <div class="background-animation" id="bloodDrops"></div>
+    
+    <!-- Header -->
+    <header>
+        <div class="logo">ROAV <span>TEAM</span></div>
+        <div class="mobile-menu" id="mobileMenu">
+            <i class="fas fa-bars"></i>
+        </div>
+        <nav>
+            <ul id="navMenu">
+                <li><a href="#home">Home</a></li>
+                <li><a href="#about">About</a></li>
+                <li><a href="#fields">Fields</a></li>
+                <li><a href="#team">Team</a></li>
+                <li><a href="#contact">Contact</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero" id="home">
+        <div class="hero-content">
+            <h1>SECURITY RESEARCH & <span>DEVELOPMENT</span></h1>
+            <p>Identifying vulnerabilities, building proof-of-concept tools, and helping developers understand real-world security risks before attackers can exploit them.</p>
+            <a href="#about" class="cta-button">Explore Our Work</a>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section class="section section-dark" id="about">
+        <div class="container">
+            <h2 class="section-title">About ROAV Team</h2>
+            <div class="about-content">
+                <div class="about-text">
+                    <p><span class="about-highlight">ROAV</span> is a security research and development team focused on cybersecurity, blockchain analysis, and defensive penetration testing. Our mission is to identify vulnerabilities, build proof-of-concept tools, and help developers and organizations understand real-world security risks before attackers can exploit them.</p>
+                    <p>All our work is conducted strictly for <span class="about-highlight">educational, testing, and defensive purposes</span> in controlled environments with proper authorization. We do not support or engage in unauthorized access, illegal exploitation, or harm to individuals or systems.</p>
+                </div>
+                <div class="about-text">
+                    <h3 class="section-title" style="font-size: 1.8rem; margin-bottom: 30px;">Our Mission</h3>
+                    <p>We bridge the gap between theoretical security and real-world threats by creating practical tools and simulations that expose vulnerabilities in controlled environments.</p>
+                    <p>Through responsible disclosure and open-source contributions, we aim to strengthen the cybersecurity ecosystem and promote defensive security practices.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Fields of Work Section -->
+    <section class="section" id="fields">
+        <div class="container">
+            <h2 class="section-title">Fields of Work</h2>
+            <div class="fields-container">
+                <div class="field-card">
+                    <div class="field-icon">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <h3>Ethical Penetration Testing</h3>
+                    <p>Comprehensive security assessments and vulnerability identification for web applications, networks, and systems with authorized access and proper scope.</p>
+                </div>
+                <div class="field-card">
+                    <div class="field-icon">
+                        <i class="fas fa-link"></i>
+                    </div>
+                    <h3>Blockchain Security</h3>
+                    <p>Smart contract audits, blockchain protocol analysis, and cryptocurrency security research to identify vulnerabilities in decentralized systems.</p>
+                </div>
+                <div class="field-card">
+                    <div class="field-icon">
+                        <i class="fas fa-bug"></i>
+                    </div>
+                    <h3>Malware Analysis</h3>
+                    <p>Reverse engineering and analysis of malicious software for defensive learning and developing countermeasures against evolving threats.</p>
+                </div>
+                <div class="field-card">
+                    <div class="field-icon">
+                        <i class="fas fa-robot"></i>
+                    </div>
+                    <h3>Secure Automation Tools</h3>
+                    <p>Development of custom security tools and risk simulation platforms to automate security testing and vulnerability assessment processes.</p>
+                </div>
+                <div class="field-card">
+                    <div class="field-icon">
+                        <i class="fas fa-balance-scale"></i>
+                    </div>
+                    <h3>Responsible Disclosure</h3>
+                    <p>Coordinated vulnerability disclosure processes that help organizations fix security issues before they can be exploited maliciously.</p>
+                </div>
+                <div class="field-card">
+                    <div class="field-icon">
+                        <i class="fas fa-code-branch"></i>
+                    </div>
+                    <h3>Open Source Research</h3>
+                    <p>Sharing selected tools, reports, and research on GitHub to contribute to the cybersecurity community and promote collaborative defense.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Team Section -->
+    <section class="section section-dark" id="team">
+        <div class="container">
+            <h2 class="section-title">Our Team</h2>
+            <div class="team-container">
+                <div class="team-member">
+                    <div class="member-icon">
+                        <i class="fas fa-user-secret"></i>
+                    </div>
+                    <h3>Web Security Expert</h3>
+                    <p>Bug Hunting & Web Security</p>
+                </div>
+                <div class="team-member">
+                    <div class="member-icon">
+                        <i class="fas fa-code"></i>
+                    </div>
+                    <h3>Reverse Engineer</h3>
+                    <p>Malware Analysis & RE</p>
+                </div>
+                <div class="team-member">
+                    <div class="member-icon">
+                        <i class="fas fa-cube"></i>
+                    </div>
+                    <h3>Blockchain Specialist</h3>
+                    <p>Smart Contract Security</p>
+                </div>
+                <div class="team-member">
+                    <div class="member-icon">
+                        <i class="fas fa-network-wired"></i>
+                    </div>
+                    <h3>Network Security</h3>
+                    <p>Infrastructure & Pentesting</p>
+                </div>
+                <div class="team-member">
+                    <div class="member-icon">
+                        <i class="fas fa-tools"></i>
+                    </div>
+                    <h3>Tool Developer</h3>
+                    <p>Secure Automation Tools</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section class="section" id="contact">
+        <div class="container">
+            <h2 class="section-title">Contact & Open Source</h2>
+            <div class="contact-container">
+                <div class="contact-info">
+                    <div class="contact-item">
+                        <div class="contact-icon">
+                            <i class="fab fa-github"></i>
+                        </div>
+                        <div class="contact-text">
+                            <h3>GitHub</h3>
+                            <p><a href="https://github.com/roav" target="_blank">github.com/roav</a></p>
+                            <p>Open source tools, security research, and proof-of-concept code</p>
+                        </div>
+                    </div>
+                    <div class="contact-item">
+                        <div class="contact-icon">
+                            <i class="fab fa-telegram"></i>
+                        </div>
+                        <div class="contact-text">
+                            <h3>Telegram</h3>
+                            <p><a href="https://t.me/ownerroav" target="_blank">@ownerroav</a></p>
+                            <p>For secure communication and responsible disclosure</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="contact-info">
+                    <h3 style="font-size: 1.8rem; margin-bottom: 20px;">Open Source & Research</h3>
+                    <p>We believe in contributing to the cybersecurity community through open source tools, research papers, and educational resources. Our GitHub repository contains selected tools, reports, and research that can help developers and security professionals better understand real-world security risks.</p>
+                    <p style="margin-top: 20px;">For collaboration inquiries or responsible vulnerability disclosure, please contact us through our Telegram channel.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-logo">ROAV <span>TEAM</span></div>
+        <p class="footer-disclaimer">All our work is conducted strictly for educational, testing, and defensive purposes in controlled environments with proper authorization. We do not support or engage in unauthorized access, illegal exploitation, or harm to individuals or systems.</p>
+        <div class="copyright">
+            &copy; 2023 ROAV Team - Security Research & Development. All rights reserved.
+        </div>
+    </footer>
+
+    <script>
+        // Create animated blood drops
+        function createBloodDrops() {
+            const container = document.getElementById('bloodDrops');
+            const dropsCount = 15;
+            
+            for (let i = 0; i < dropsCount; i++) {
+                const drop = document.createElement('div');
+                drop.classList.add('blood-drop');
+                
+                // Random size
+                const size = Math.random() * 60 + 10;
+                drop.style.width = `${size}px`;
+                drop.style.height = `${size * 1.2}px`;
+                
+                // Random position
+                drop.style.left = `${Math.random() * 100}%`;
+                drop.style.top = `${Math.random() * 100 + 100}%`;
+                
+                // Random animation delay and duration
+                const delay = Math.random() * 5;
+                const duration = Math.random() * 10 + 20;
+                drop.style.animationDelay = `${delay}s`;
+                drop.style.animationDuration = `${duration}s`;
+                
+                container.appendChild(drop);
+            }
+        }
+        
+        // Mobile menu toggle
+        const mobileMenu = document.getElementById('mobileMenu');
+        const navMenu = document.getElementById('navMenu');
+        
+        mobileMenu.addEventListener('click', () => {
+            navMenu.classList.toggle('active');
+            mobileMenu.innerHTML = navMenu.classList.contains('active') 
+                ? '<i class="fas fa-times"></i>' 
+                : '<i class="fas fa-bars"></i>';
+        });
+        
+        // Close mobile menu when clicking on a link
+        document.querySelectorAll('nav ul li a').forEach(link => {
+            link.addEventListener('click', () => {
+                navMenu.classList.remove('active');
+                mobileMenu.innerHTML = '<i class="fas fa-bars"></i>';
+            });
+        });
+        
+        // Smooth scrolling for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                const targetId = this.getAttribute('href');
+                if (targetId === '#') return;
+                
+                const targetElement = document.querySelector(targetId);
+                if (targetElement) {
+                    window.scrollTo({
+                        top: targetElement.offsetTop - 80,
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        });
+        
+        // Initialize blood drops on page load
+        window.addEventListener('DOMContentLoaded', () => {
+            createBloodDrops();
+            
+            // Add scroll animation for elements
+            const observerOptions = {
+                threshold: 0.1,
+                rootMargin: '0px 0px -100px 0px'
+            };
+            
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.opacity = '1';
+                        entry.target.style.transform = 'translateY(0)';
+                    }
+                });
+            }, observerOptions);
+            
+            // Observe elements for scroll animations
+            document.querySelectorAll('.field-card, .team-member').forEach(el => {
+                el.style.opacity = '0';
+                el.style.transform = 'translateY(30px)';
+                el.style.transition = 'opacity 0.8s ease, transform 0.8s ease';
+                observer.observe(el);
+            });
+        });
+    </script>
+</body>
+</html>
